@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SecureAuth OS — Authentication Module</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Google Fonts: Syne (display) + Fira Code (monospace details) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       BOOT OVERLAY — shown once on page load
+  ══════════════════════════════════════════════════ -->
+  <div id="boot-overlay" aria-hidden="true">
+    <div class="boot-lines" id="boot-lines"></div>
+    <div class="boot-progress-bar"><div id="boot-fill"></div></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN APPLICATION SHELL
+  ══════════════════════════════════════════════════ -->
+  <div id="app" class="hidden">
+
+    <!-- Ambient scanline texture -->
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <!-- Corner decoration marks -->
+    <span class="corner tl" aria-hidden="true"></span>
+    <span class="corner tr" aria-hidden="true"></span>
+    <span class="corner bl" aria-hidden="true"></span>
+    <span class="corner br" aria-hidden="true"></span>
+
+    <!-- Top status bar -->
+    <header class="status-bar">
+      <span class="status-left">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">SYSTEM IDLE</span>
+      </span>
+      <span class="status-center">SEC·AUTH·OS <span class="version">v3.1.4</span></span>
+      <span class="status-right" id="clock"></span>
+    </header>
+
+    <!-- ─── CARD STACK ─────────────────────────── -->
+    <main class="card-stack">
+
+      <!-- ══ PANEL: Register ══════════════════ -->
+      <section class="auth-panel" id="panel-register" role="form" aria-label="Register">
+        <div class="panel-badge">NEW ACCOUNT</div>
+        <h1 class="panel-title">Register</h1>
+        <p class="panel-sub">Create a secure system identity.</p>
+
+        <div class="field-group">
+          <label for="reg-username" class="field-label">USERNAME</label>
+          <div class="field-wrap">
+            <input
+              type="text"
+              id="reg-username"
+              class="field-input"
+              placeholder="choose a username"
+              maxlength="64"
+              autocomplete="username"
+              spellcheck="false"
+            />
+            <span class="field-icon">⌘</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="reg-password" class="field-label">PASSWORD</label>
+          <div class="field-wrap">
+            <input
+              type="password"
+              id="reg-password"
+              class="field-input"
+              placeholder="minimum 8 characters"
+              maxlength="128"
+              autocomplete="new-password"
+            />
+            <button class="toggle-pw" type="button" aria-label="Toggle password visibility" data-target="reg-password">◎</button>
+          </div>
+          <!-- Strength meter -->
+          <div class="strength-meter" aria-live="polite">
+            <div class="strength-bar">
+              <div class="strength-fill" id="strength-fill"></div>
+            </div>
+            <span class="strength-label" id="strength-label">—</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-register" type="button">
+          <span class="btn-text">INITIALISE ACCOUNT</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+
+        <p class="switch-link">Already registered? <button class="link-btn" id="go-login" type="button">Sign in →</button></p>
+
+        <div class="feedback-box hidden" id="reg-feedback" role="alert" aria-live="assertive"></div>
+      </section>
+
+      <!-- ══ PANEL: Login ═════════════════════ -->
+      <section class="auth-panel hidden" id="panel-login" role="form" aria-label="Login">
+        <div class="panel-badge">AUTHENTICATION</div>
+        <h1 class="panel-title">Login</h1>
+        <p class="panel-sub">Verify your system identity.</p>
+
+        <div class="field-group">
+          <label for="login-username" class="field-label">USERNAME</label>
+          <div class="field-wrap">
+            <input
+              type="text"
+              id="login-username"
+              class="field-input"
+              placeholder="your username"
+              maxlength="64"
+              autocomplete="username"
+              spellcheck="false"
+            />
+            <span class="field-icon">⌘</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="login-password" class="field-label">PASSWORD</label>
+          <div class="field-wrap">
+            <input
+              type="password"
+              id="login-password"
+              class="field-input"
+              placeholder="your password"
+              maxlength="128"
+              autocomplete="current-password"
+            />
+            <button class="toggle-pw" type="button" aria-label="Toggle password visibility" data-target="login-password">◎</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-login" type="button">
+          <span class="btn-text">AUTHENTICATE</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+
+        <p class="switch-link">No account yet? <button class="link-btn" id="go-register" type="button">Register →</button></p>
+
+        <div class="feedback-box hidden" id="login-feedback" role="alert" aria-live="assertive"></div>
+      </section>
+
+      <!-- ══ PANEL: OTP ════════════════════════ -->
+      <section class="auth-panel hidden" id="panel-otp" role="form" aria-label="OTP Verification">
+        <div class="panel-badge">2-FACTOR</div>
+        <h1 class="panel-title">Verify OTP</h1>
+        <p class="panel-sub">Enter the one-time code sent to your registered channel.</p>
+
+        <!-- 6-digit OTP input boxes -->
+        <div class="otp-cluster" id="otp-cluster" role="group" aria-label="6-digit OTP">
+          <input class="otp-box" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 1" />
+          <input class="otp-box" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 2" />
+          <input class="otp-box" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 3" />
+          <span class="otp-sep" aria-hidden="true">—</span>
+          <input class="otp-box" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 4" />
+          <input class="otp-box" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 5" />
+          <input class="otp-box" type="text" inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 6" />
+        </div>
+
+        <!-- Countdown timer -->
+        <div class="otp-timer" aria-live="polite">
+          Code expires in <span id="otp-countdown">02:00</span>
+        </div>
+
+        <button class="btn-primary" id="btn-verify-otp" type="button">
+          <span class="btn-text">VERIFY &amp; ENTER</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+
+        <button class="link-btn resend-btn" id="btn-resend-otp" type="button" disabled>Resend code</button>
+
+        <div class="feedback-box hidden" id="otp-feedback" role="alert" aria-live="assertive"></div>
+      </section>
+
+      <!-- ══ PANEL: Success ════════════════════ -->
+      <section class="auth-panel hidden" id="panel-success" aria-label="Access Granted">
+        <div class="success-glyph" aria-hidden="true">✦</div>
+        <h1 class="panel-title success-title">ACCESS<br/>GRANTED</h1>
+        <p class="panel-sub" id="success-user-msg">Identity confirmed. Session initialised.</p>
+        <div class="success-terminal" id="success-terminal" aria-live="polite"></div>
+        <button class="btn-secondary" id="btn-logout" type="button">END SESSION</button>
+      </section>
+
+    </main><!-- /.card-stack -->
+
+    <!-- Footer info bar -->
+    <footer class="info-bar">
+      <span>AES-256 · bcrypt · TOTP · TLS</span>
+      <span>KERNEL LAYER: C++  ·  API LAYER: Python/Flask</span>
+    </footer>
+
+  </div><!-- /#app -->
+
+  <script src="script.js"></script>
+</body>
+</html>

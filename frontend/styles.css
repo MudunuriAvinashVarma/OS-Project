@@ -1,0 +1,659 @@
+/* ═══════════════════════════════════════════════════════════════
+   SecureAuth OS — styles.css
+   Theme: Industrial-terminal  |  Dark, monochrome + acid-green
+   Fonts: Syne (display) · Fira Code (mono)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── 0. CSS Custom Properties ─────────────────────────────── */
+:root {
+  /* Palette */
+  --bg:          #080c0a;
+  --bg-card:     #0d1410;
+  --bg-field:    #111811;
+  --border:      #1e2e22;
+  --border-hi:   #2e4a34;
+  --accent:      #39ff7e;        /* acid green */
+  --accent-dim:  #1a7a3d;
+  --accent-glow: rgba(57,255,126,.18);
+  --danger:      #ff4455;
+  --danger-dim:  rgba(255,68,85,.15);
+  --warn:        #ffcc00;
+  --text:        #c8e0cd;
+  --text-muted:  #4a6650;
+  --text-dim:    #2a3d2e;
+
+  /* Typography */
+  --font-display: 'Syne', sans-serif;
+  --font-mono:    'Fira Code', monospace;
+
+  /* Sizing */
+  --card-w:      420px;
+  --radius:      4px;
+  --radius-lg:   8px;
+  --transition:  160ms cubic-bezier(.4,0,.2,1);
+}
+
+/* ── 1. Reset + Base ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* utility */
+.hidden { display: none !important; }
+
+/* ── 2. Boot Overlay ──────────────────────────────────────── */
+#boot-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10vw;
+  gap: 24px;
+  transition: opacity .4s ease, visibility .4s ease;
+}
+
+#boot-overlay.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.boot-lines {
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  color: var(--accent-dim);
+  line-height: 1.9;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.boot-line {
+  opacity: 0;
+  transform: translateX(-6px);
+  animation: boot-line-in .25s ease forwards;
+}
+
+@keyframes boot-line-in {
+  to { opacity: 1; transform: none; }
+}
+
+.boot-line.ok    { color: var(--accent); }
+.boot-line.warn  { color: var(--warn); }
+.boot-line.error { color: var(--danger); }
+
+.boot-progress-bar {
+  width: 280px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#boot-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width .08s linear;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+/* ── 3. Scanlines texture ─────────────────────────────────── */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.18) 2px,
+    rgba(0,0,0,.18) 4px
+  );
+}
+
+/* ── 4. Corner Marks ──────────────────────────────────────── */
+.corner {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  border-color: var(--accent-dim);
+  border-style: solid;
+  opacity: .5;
+  z-index: 1;
+}
+.corner.tl { top: 16px; left: 16px;  border-width: 1px 0 0 1px; }
+.corner.tr { top: 16px; right: 16px; border-width: 1px 1px 0 0; }
+.corner.bl { bottom: 16px; left: 16px;  border-width: 0 0 1px 1px; }
+.corner.br { bottom: 16px; right: 16px; border-width: 0 1px 1px 0; }
+
+/* ── 5. Status Bar ────────────────────────────────────────── */
+.status-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 36px;
+  background: rgba(8,12,10,.92);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.status-left  { display: flex; align-items: center; gap: 8px; }
+.status-center { font-family: var(--font-display); font-weight: 700; font-size: .72rem; color: var(--text); letter-spacing: .2em; }
+.version { color: var(--accent-dim); font-size: .6rem; }
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background .3s ease, box-shadow .3s ease;
+}
+.status-dot.active  { background: var(--accent);  box-shadow: 0 0 6px var(--accent); }
+.status-dot.error   { background: var(--danger);  box-shadow: 0 0 6px var(--danger); }
+.status-dot.loading { background: var(--warn);    box-shadow: 0 0 6px var(--warn);   animation: pulse-dot 1s infinite; }
+
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .3; }
+}
+
+/* ── 6. App Shell + Layout ────────────────────────────────── */
+#app {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px 48px;
+  z-index: 1;
+}
+
+/* subtle radial glow at center */
+#app::before {
+  content: '';
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(57,255,126,.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 7. Card Stack ────────────────────────────────────────── */
+.card-stack {
+  width: 100%;
+  max-width: var(--card-w);
+  position: relative;
+  z-index: 2;
+}
+
+/* ── 8. Auth Panel ────────────────────────────────────────── */
+.auth-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px 32px;
+  position: relative;
+  overflow: hidden;
+  /* slide-in animation */
+  animation: panel-in .35s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* top-left accent line */
+.auth-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 60px; height: 2px;
+  background: var(--accent);
+  border-radius: 0 0 2px 0;
+}
+
+/* Panel badge */
+.panel-badge {
+  display: inline-block;
+  font-size: .6rem;
+  letter-spacing: .18em;
+  color: var(--accent);
+  background: rgba(57,255,126,.08);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 3px 10px;
+  margin-bottom: 16px;
+}
+
+/* Panel title */
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #e8f5ec;
+  line-height: 1.1;
+  letter-spacing: -.01em;
+  margin-bottom: 6px;
+}
+
+/* Panel subtitle */
+.panel-sub {
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+/* ── 9. Field Groups ──────────────────────────────────────── */
+.field-group {
+  margin-bottom: 20px;
+}
+
+.field-label {
+  display: block;
+  font-size: .6rem;
+  letter-spacing: .16em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--bg-field);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  padding: 11px 42px 11px 14px;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  caret-color: var(--accent);
+}
+
+.field-input::placeholder { color: var(--text-dim); }
+
+.field-input:focus {
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.field-input.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-dim);
+}
+
+.field-icon {
+  position: absolute;
+  right: 13px;
+  font-size: .8rem;
+  color: var(--text-dim);
+  pointer-events: none;
+  user-select: none;
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: .85rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color var(--transition);
+}
+.toggle-pw:hover { color: var(--accent); }
+
+/* ── 10. Password Strength Meter ──────────────────────────── */
+.strength-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width .3s ease, background .3s ease;
+}
+
+.strength-label {
+  font-size: .6rem;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+  min-width: 48px;
+  text-align: right;
+}
+
+/* strength levels */
+.strength-fill[data-level="1"] { width: 25%; background: var(--danger); }
+.strength-fill[data-level="2"] { width: 50%; background: var(--warn); }
+.strength-fill[data-level="3"] { width: 75%; background: #7fff6b; }
+.strength-fill[data-level="4"] { width: 100%; background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+/* ── 11. Buttons ──────────────────────────────────────────── */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 20px;
+  background: var(--accent);
+  color: #040a06;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: .14em;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,.12), transparent);
+  pointer-events: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #5cffa0;
+  box-shadow: 0 0 20px rgba(57,255,126,.4);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-primary:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+/* loader spinner inside button */
+.btn-loader {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(4,10,6,.3);
+  border-top-color: #040a06;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-secondary {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px 20px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  letter-spacing: .12em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.btn-secondary:hover { border-color: var(--danger); color: var(--danger); }
+
+/* link-style buttons */
+.switch-link {
+  margin-top: 18px;
+  font-size: .7rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--accent-dim);
+  transition: color var(--transition);
+  padding: 0;
+}
+.link-btn:hover { color: #5cffa0; }
+.link-btn:disabled { color: var(--text-muted); cursor: not-allowed; text-decoration: none; }
+
+/* ── 12. Feedback Box ─────────────────────────────────────── */
+.feedback-box {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: .72rem;
+  line-height: 1.5;
+  border-left: 3px solid transparent;
+  animation: fade-in .2s ease;
+}
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.feedback-box.success {
+  background: rgba(57,255,126,.07);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.feedback-box.error {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.feedback-box.info {
+  background: rgba(255,204,0,.07);
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+/* ── 13. OTP Cluster ──────────────────────────────────────── */
+.otp-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin: 8px 0 16px;
+}
+
+.otp-box {
+  width: 48px; height: 56px;
+  text-align: center;
+  background: var(--bg-field);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+  caret-color: transparent;
+}
+
+.otp-box:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+.otp-box.filled {
+  border-color: var(--accent-dim);
+  background: rgba(57,255,126,.05);
+}
+
+.otp-box.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-dim);
+  animation: shake .3s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+
+.otp-sep {
+  color: var(--text-dim);
+  font-size: .9rem;
+  user-select: none;
+  margin: 0 2px;
+}
+
+/* OTP countdown timer */
+.otp-timer {
+  text-align: center;
+  font-size: .68rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  letter-spacing: .06em;
+}
+
+#otp-countdown { color: var(--accent); font-weight: 500; }
+#otp-countdown.expiring { color: var(--danger); animation: pulse-dot 1s infinite; }
+
+/* Resend */
+.resend-btn {
+  display: block;
+  margin: 12px auto 0;
+  font-size: .68rem;
+}
+
+/* ── 14. Success Panel ────────────────────────────────────── */
+.success-glyph {
+  font-size: 2.4rem;
+  color: var(--accent);
+  text-shadow: 0 0 24px var(--accent);
+  margin-bottom: 12px;
+  animation: glyph-pop .5s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes glyph-pop {
+  from { transform: scale(.4) rotate(-20deg); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.success-title {
+  font-size: 2.2rem;
+  color: var(--accent);
+  text-shadow: 0 0 32px rgba(57,255,126,.3);
+  margin-bottom: 8px;
+}
+
+.success-terminal {
+  margin-top: 24px;
+  background: #0a0f0b;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: .7rem;
+  color: var(--accent-dim);
+  line-height: 2;
+  min-height: 80px;
+  letter-spacing: .04em;
+}
+
+.success-terminal .t-line { opacity: 0; animation: boot-line-in .2s ease forwards; }
+
+/* ── 15. Info Bar (Footer) ────────────────────────────────── */
+.info-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 28px;
+  background: rgba(8,12,10,.92);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: .58rem;
+  letter-spacing: .1em;
+  color: var(--text-dim);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+/* ── 16. Scrollbar styling ────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+
+/* ── 17. Responsive ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  :root { --card-w: 100%; }
+
+  #app { padding: 52px 12px 40px; }
+
+  .auth-panel { padding: 28px 20px 24px; }
+
+  .panel-title { font-size: 1.5rem; }
+
+  .otp-box { width: 40px; height: 48px; font-size: 1.2rem; }
+
+  .corner { display: none; }
+
+  .info-bar { font-size: .5rem; gap: 8px; flex-direction: column; height: auto; padding: 4px 12px; }
+}
+
+/* ── 18. Focus-visible accessibility ─────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
