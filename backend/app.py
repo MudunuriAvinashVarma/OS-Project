@@ -135,7 +135,7 @@ def validate_password(password: str) -> str | None:
     if not password:
         return "Password is required."
     if len(password) < MIN_PASSWORD_LEN:
-        return f"Password must be at least {MIN_PASSWORD_LEN} characters."
+        return f"Password must contain at least {MIN_PASSWORD_LEN} characters."
     if len(password) > MAX_PASSWORD_LEN:
         return f"Password must be at most {MAX_PASSWORD_LEN} characters."
     return None
