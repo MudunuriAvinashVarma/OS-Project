@@ -518,3 +518,4 @@ pip install -r backend/requirements.txt
 
 *SecureAuth OS — built for educational demonstration of multi-tier authentication security.*
 This is my OS project.
+This is Secure Authentication Module.
